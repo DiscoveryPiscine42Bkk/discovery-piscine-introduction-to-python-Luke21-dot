@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 first_name = "Lwin Phyo"
 last_name = "Aung"
 whole_name = first_name + " " + last_name
