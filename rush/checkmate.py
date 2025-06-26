@@ -1,6 +1,6 @@
-def checkmate(board):
+def checkmate(board_str):
+    board = [list(row) for row in board_str.strip().split('\n')]
     n = len(board)
-    board = [list(row) for row in board]
 
     # Find King position
     king_pos = None
@@ -16,50 +16,58 @@ def checkmate(board):
         print("Fail")
         return
 
+    if (
+        is_threatened_by_pawn(board, king_pos) or
+        is_threatened_by_bishop(board, king_pos) or
+        is_threatened_by_rook(board, king_pos) or
+        is_threatened_by_queen(board, king_pos)
+    ):
+        print("Success")
+    else:
+        print("Fail")
+
+
+def is_threatened_by_pawn(board, king_pos):
     x, y = king_pos
-
-    # Directions for Bishop and Queen (diagonals)
-    diagonals = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
-
-    # Directions for Rook and Queen (straight lines)
-    straight = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-
-    # Check for Pawns attacking
-    pawn_dirs = [(-1, -1), (-1, 1)]  # Only from above (assuming enemy pawns move downward)
-    for dx, dy in pawn_dirs:
+    directions = [(-1, -1), (-1, 1)]  # enemy pawns move upward
+    for dx, dy in directions:
         nx, ny = x + dx, y + dy
-        if 0 <= nx < n and 0 <= ny < n and board[nx][ny] == 'P':
-            print("Success")
-            return
+        if 0 <= nx < len(board) and 0 <= ny < len(board):
+            if board[nx][ny] == 'P':
+                return True
+    return False
 
-    # Check for Bishop or Queen
-    for dx, dy in diagonals:
-        nx, ny = x + dx, y + dy
-        while 0 <= nx < n and 0 <= ny < n:
-            cell = board[nx][ny]
-            if cell == '.':
-                nx += dx
-                ny += dy
-                continue
-            elif cell == 'B' or cell == 'Q':
-                print("Success")
-                return
-            else:
+
+def is_threatened_by_bishop(board, king_pos):
+    return check_directions(board, king_pos, [(-1,-1), (-1,1), (1,-1), (1,1)], ['B'])
+
+
+def is_threatened_by_rook(board, king_pos):
+    return check_directions(board, king_pos, [(-1,0), (1,0), (0,-1), (0,1)], ['R'])
+
+
+def is_threatened_by_queen(board, king_pos):
+    return check_directions(
+        board,
+        king_pos,
+        [(-1,-1), (-1,1), (1,-1), (1,1), (-1,0), (1,0), (0,-1), (0,1)],
+        ['Q']
+    )
+
+
+def check_directions(board, start, directions, threatening_pieces):
+    n = len(board)
+    for dx, dy in directions:
+        x, y = start
+        while True:
+            x += dx
+            y += dy
+            if not (0 <= x < n and 0 <= y < n):
                 break
-
-    # Check for Rook or Queen
-    for dx, dy in straight:
-        nx, ny = x + dx, y + dy
-        while 0 <= nx < n and 0 <= ny < n:
-            cell = board[nx][ny]
-            if cell == '.':
-                nx += dx
-                ny += dy
+            square = board[x][y]
+            if square == '.':
                 continue
-            elif cell == 'R' or cell == 'Q':
-                print("Success")
-                return
-            else:
-                break
-
-    print("Fail")
+            if square in threatening_pieces:
+                return True
+            break  # blocked by other piece
+    return False
